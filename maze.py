@@ -3,11 +3,22 @@ import random
 import py5
 import time
 
-# Tamaño del laberinto
-n = 5
+# Variable global para la dificultad seleccionada
+dificultad = 5  # 1 = fácil, 2 = media, 3 = difícil
+
+# Tamaño del laberinto según la dificultad
+def obtener_tamano_laberinto(dificultad):
+    if dificultad == 1:
+        return 5  # Fácil
+    elif dificultad == 2:
+        return 10  # Media
+    else:
+        return 15  # Difícil
+
+# Posición del jugador y la salida
 jugador_pos = (0, 0)  # Posición inicial del jugador
 inicio = (0, 0)
-salida = (n - 1, n - 1)
+salida = None
 
 # Generar laberinto como grafo
 def generar_laberinto(n):
@@ -18,11 +29,17 @@ def generar_laberinto(n):
     maze.add_edges_from(edges[:n * n - 1])
     return maze
 
+# Establecer tamaño y generar laberinto con dificultad seleccionada
+n = obtener_tamano_laberinto(dificultad)
+salida = (n - 1, n - 1)
 laberinto = generar_laberinto(n)
 
 # Tiempo límite (en segundos)
 tiempo_inicio = time.time()
 tiempo_limite = 30
+
+# Ajustar la escala de dibujo en función del tamaño del laberinto
+tamaño_celda = 400 // n  # 400px de ancho / n filas (se ajusta según la dificultad)
 
 def dibujar_laberinto(grafo):
     py5.stroke(0)  # Color negro para las aristas
@@ -30,20 +47,19 @@ def dibujar_laberinto(grafo):
     for (nodo1, nodo2) in grafo.edges():
         x1, y1 = nodo1
         x2, y2 = nodo2
-        py5.line(x1 * 80 + 40, y1 * 80 + 40, x2 * 80 + 40, y2 * 80 + 40)
-
+        py5.line(x1 * tamaño_celda + 40, y1 * tamaño_celda + 40, x2 * tamaño_celda + 40, y2 * tamaño_celda + 40)
 
 # Dibujar la posición del jugador
 def dibujar_jugador(pos):
     x, y = pos
     py5.fill(0, 0, 255)
-    py5.ellipse(x * 80 + 40, y * 80 + 40, 20, 20)
+    py5.ellipse(x * tamaño_celda + 40, y * tamaño_celda + 40, 20, 20)
 
 # Dibujar la posición de la salida
 def dibujar_salida():
     x, y = salida
     py5.fill(0, 255, 0)
-    py5.rect(x * 80 + 30, y * 80 + 30, 20, 20)
+    py5.rect(x * tamaño_celda + 30, y * tamaño_celda + 30, 20, 20)
 
 def dibujar_camino(camino):
     py5.stroke(255, 0, 0)  # Color rojo para el camino
@@ -51,10 +67,7 @@ def dibujar_camino(camino):
     for i in range(len(camino) - 1):
         x1, y1 = camino[i]
         x2, y2 = camino[i + 1]
-        py5.line(x1 * 80 + 40, y1 * 80 + 40, x2 * 80 + 40, y2 * 80 + 40)
-
-
-
+        py5.line(x1 * tamaño_celda + 40, y1 * tamaño_celda + 40, x2 * tamaño_celda + 40, y2 * tamaño_celda + 40)
 
 def encontrar_camino_dfs(grafo, inicio, objetivo, visitados=None):
     if visitados is None:
@@ -76,9 +89,6 @@ def encontrar_camino_dfs(grafo, inicio, objetivo, visitados=None):
 
     return None  # No hay camino desde este nodo
 
-
-
-
 def mostrar_solucion():
     # Calcular el camino desde el jugador a la salida
     camino = encontrar_camino_dfs(laberinto, jugador_pos, salida)
@@ -90,9 +100,6 @@ def mostrar_solucion():
     print(f"Camino encontrado desde {jugador_pos} hasta {salida}: {camino}")
     dibujar_camino(camino)
 
-
-
-
 # Mostrar el tiempo restante en pantalla
 def mostrar_tiempo_restante():
     tiempo_actual = time.time()
@@ -101,10 +108,10 @@ def mostrar_tiempo_restante():
     py5.text_size(20)
     py5.text(f"Tiempo restante: {tiempo_restante}s", 10, 30)
 
-# Configuración inicial de py5
 def setup():
-    py5.size(400, 400)
+    py5.size(800, 800)  # Aumentar el tamaño de la ventana a 800x800
     py5.background(255)
+
 
 def draw():
     global jugador_pos
@@ -123,10 +130,14 @@ def draw():
     if tiempo_actual - tiempo_inicio > tiempo_limite:
         mostrar_solucion()
 
-
 def key_pressed():
     global jugador_pos
     x, y = jugador_pos
+
+    # Asegurarse de que los nodos están dentro del grafo
+    if (x, y) not in laberinto.nodes():
+        print(f"El nodo {jugador_pos} no está en el grafo. Reintentando...")
+        return
 
     if py5.key == py5.CODED:
         if py5.key_code == py5.UP and (x, y - 1) in laberinto.neighbors((x, y)):
