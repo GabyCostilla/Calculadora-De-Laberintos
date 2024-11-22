@@ -39,21 +39,33 @@ tiempo_inicio = time.time()
 tiempo_limite = 30
 
 # Ajustar la escala de dibujo en función del tamaño del laberinto
-tamaño_celda = 400 // n  # 400px de ancho / n filas (se ajusta según la dificultad)
+tamaño_celda = 500 // n  # 400px de ancho / n filas (se ajusta según la dificultad)
 
 def dibujar_laberinto(grafo):
-    py5.stroke(0)  # Color negro para las aristas
-    py5.stroke_weight(1)  # Líneas normales
+    py5.no_fill()
+    py5.stroke_weight(2)  # Grosor de las líneas de las paredes
+    
+    # Definir los colores de las paredes y las aristas
+    py5.stroke(0, 0, 0)  # Color negro para las paredes
+    py5.stroke_weight(3)  # Paredes más gruesas para mayor visibilidad
+    
+    # Dibujar las paredes
     for (nodo1, nodo2) in grafo.edges():
         x1, y1 = nodo1
         x2, y2 = nodo2
         py5.line(x1 * tamaño_celda + 40, y1 * tamaño_celda + 40, x2 * tamaño_celda + 40, y2 * tamaño_celda + 40)
 
-# Dibujar la posición del jugador
 def dibujar_jugador(pos):
     x, y = pos
-    py5.fill(0, 0, 255)
-    py5.ellipse(x * tamaño_celda + 40, y * tamaño_celda + 40, 20, 20)
+    py5.fill(0, 121, 255)  # Color azul para el jugador
+    
+    # Añadir bordes suaves a la forma del jugador
+    py5.no_stroke()
+    py5.ellipse(x * tamaño_celda + 40, y * tamaño_celda + 40, 24, 24)
+    
+    # Agregar un brillo alrededor del jugador para destacar
+    py5.fill(255, 255, 255, 100)  # Color blanco semitransparente para el brillo
+    py5.ellipse(x * tamaño_celda + 40, y * tamaño_celda + 40, 32, 32)  # Brillo suave
 
 # Dibujar la posición de la salida
 def dibujar_salida():
